@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>図解ライブラリ</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      min-height: 100vh;
+      padding: 48px 24px 80px;
+    }
+    .header {
+      max-width: 720px;
+      margin: 0 auto 40px;
+      border-bottom: 1px solid #21262d;
+      padding-bottom: 24px;
+    }
+    .header h1 { font-size: 1.7rem; font-weight: 700; margin-bottom: 6px; }
+    .header p  { font-size: 0.88rem; color: #7d8590; }
+    .grid {
+      max-width: 720px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 10px;
+      padding: 20px;
+      text-decoration: none;
+      display: block;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .card:hover {
+      border-color: #58a6ff;
+      background: #1c2433;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e6edf3;
+      margin-bottom: 6px;
+    }
+    .card-desc {
+      font-size: 0.8rem;
+      color: #7d8590;
+      line-height: 1.6;
+    }
+    .card-tag {
+      display: inline-block;
+      margin-top: 12px;
+      font-size: 0.68rem;
+      color: #58a6ff;
+      background: #132032;
+      border: 1px solid #1f6feb;
+      border-radius: 4px;
+      padding: 2px 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>図解ライブラリ</h1>
+    <p>業界・技術の業務フローを視覚化したリファレンス集</p>
+  </div>
+  <div class="grid">
+    <a class="card" href="aviation-business-flow.html">
+      <div class="card-title">航空業界 業務フロー</div>
+      <div class="card-desc">旅客フロー・航空会社オペレーション・空港・支援機能・安全管理の全体像</div>
+      <span class="card-tag">航空業界</span>
+    </a>
+    <a class="card" href="api-visual-explainer.html">
+      <div class="card-title">API 図解ガイド</div>
+      <div class="card-desc">APIの概念・仕組み・種別・認証方式・ユースケースをまとめた視覚的リファレンス</div>
+      <span class="card-tag">技術</span>
+    </a>
+  </div>
+</body>
+</html>

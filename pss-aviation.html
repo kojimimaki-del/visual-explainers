@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>航空業界の PSS（旅客サービスシステム）図解</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #0d1117;
+      --sf:       #161b22;
+      --sf2:      #1c2128;
+      --bd:       #21262d;
+      --bd2:      #30363d;
+      --t1:       #e6edf3;
+      --t2:       #8b949e;
+      --t3:       #7d8590;
+      --blue:     #58a6ff;
+      --blue-d:   #1f6feb;
+      --green:    #3fb950;
+      --orange:   #d29922;
+      --red:      #f85149;
+      --purple:   #bc8cff;
+      --teal:     #39d353;
+    }
+    body {
+      font-family: 'Segoe UI','Hiragino Sans','Yu Gothic',sans-serif;
+      background: var(--bg);
+      color: var(--t1);
+      padding: 40px 24px 80px;
+    }
+    .wrap { max-width: 1080px; margin: 0 auto; }
+
+    /* ヘッダー */
+    .page-header { border-bottom: 1px solid var(--bd); padding-bottom: 22px; margin-bottom: 32px; }
+    .page-header h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 6px; }
+    .page-header p  { font-size: 0.88rem; color: var(--t3); }
+
+    /* セクション */
+    .section { margin-bottom: 40px; }
+    .sec-title {
+      font-size: 1rem; font-weight: 700; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .badge {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--blue-d); color: #fff;
+      font-size: 0.72rem; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .sec-desc { font-size: 0.82rem; color: var(--t3); margin-bottom: 16px; }
+    .divider  { border: none; border-top: 1px solid var(--bd); margin: 36px 0; }
+
+    /* KPI */
+    .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 36px; }
+    .kpi { background: var(--sf); border: 1px solid var(--bd); border-radius: 10px; padding: 16px; text-align: center; }
+    .kpi-val { font-size: 1.8rem; font-weight: 700; color: var(--blue); line-height: 1; margin-bottom: 6px; }
+    .kpi-lbl { font-size: 0.78rem; color: var(--t3); }
+
+    /* カード */
+    .card { background: var(--sf); border: 1px solid var(--bd); border-radius: 10px; overflow: hidden; transition: border-color .2s; }
+    .card:hover { border-color: var(--blue-d); }
+    .card-h { background: var(--sf2); border-bottom: 1px solid var(--bd); padding: 9px 14px; display: flex; align-items: center; justify-content: space-between; }
+    .card-h-title { font-size: 0.82rem; font-weight: 600; color: var(--t1); }
+    .card-h-sub   { font-size: 0.7rem; color: var(--t3); }
+    .card-b { padding: 14px; }
+
+    /* グリッド */
+    .g2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; }
+    .g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+    .g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+
+    /* 箇条書き */
+    .dl { list-style: none; }
+    .dl li { display: flex; align-items: flex-start; gap: 8px; font-size: 0.8rem; color: var(--t2); line-height: 1.5; margin-bottom: 6px; }
+    .dl li:last-child { margin-bottom: 0; }
+    .dl li::before { content:''; width:4px; height:4px; border-radius:50%; background:var(--bd2); flex-shrink:0; margin-top:5px; }
+
+    /* ① PSS概念図 */
+    .concept {
+      background: var(--sf); border: 1px solid var(--bd); border-radius: 12px;
+      padding: 28px 20px; display: flex; align-items: center; justify-content: center;
+      flex-wrap: wrap; gap: 0; row-gap: 16px;
+    }
+    .cbox { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 100px; }
+    .cicon {
+      width: 56px; height: 56px; border-radius: 14px;
+      border: 1.5px solid var(--bd2); background: var(--sf2);
+      display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+    }
+    .cicon.hl { border-color: var(--blue); background: #132032; }
+    .clabel   { font-size: 0.78rem; font-weight: 600; color: var(--t1); text-align: center; }
+    .csub     { font-size: 0.65rem; color: var(--t3); text-align: center; line-height: 1.4; }
+    .carr {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 0 10px; gap: 2px; flex-shrink: 0;
+    }
+    .carr .alabel { font-size: 0.62rem; color: var(--t3); white-space: nowrap; }
+
+    /* ② PSSアーキテクチャ */
+    .arch-wrap {
+      display: grid;
+      grid-template-columns: 1fr 3fr 1fr;
+      gap: 14px;
+    }
+    .arch-center { display: flex; flex-direction: column; gap: 12px; }
+    .arch-side   { display: flex; flex-direction: column; gap: 12px; }
+
+    .pss-core {
+      background: #132032; border: 2px solid var(--blue);
+      border-radius: 12px; padding: 16px;
+    }
+    .pss-core-title {
+      font-size: 0.78rem; font-weight: 700; color: var(--blue);
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;
+      text-align: center;
+    }
+    .pss-modules {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
+    }
+    .pss-mod {
+      background: #0d1f35; border: 1px solid var(--blue-d);
+      border-radius: 8px; padding: 10px 8px; text-align: center;
+      transition: background .2s;
+    }
+    .pss-mod:hover { background: #1c3050; }
+    .pss-mod-name { font-size: 0.78rem; font-weight: 600; color: var(--t1); margin-bottom: 3px; }
+    .pss-mod-abbr { font-size: 0.65rem; color: var(--blue); font-family: monospace; }
+    .pss-mod-desc { font-size: 0.68rem; color: var(--t3); margin-top: 4px; line-height: 1.4; }
+
+    .side-box {
+      background: var(--sf); border: 1px solid var(--bd);
+      border-radius: 10px; padding: 12px;
+    }
+    .side-box-title {
+      font-size: 0.72rem; font-weight: 700; color: var(--t3);
+      text-transform: uppercase; letter-spacing: 0.04em;
+      margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid var(--bd);
+    }
+    .side-item {
+      font-size: 0.75rem; color: var(--t2);
+      padding: 5px 0; border-bottom: 1px solid var(--bd);
+      line-height: 1.4;
+    }
+    .side-item:last-child { border-bottom: none; }
+    .side-item strong { color: var(--t1); display: block; font-size: 0.76rem; }
+
+    .conn-arrow {
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ③ データフロー（旅客フロー × PSS） */
+    .flow-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .flow-table th {
+      background: var(--sf2); color: var(--t3); font-size: 0.7rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em; padding: 10px 12px;
+      text-align: left; border-bottom: 1px solid var(--bd);
+    }
+    .flow-table td { padding: 10px 12px; border-bottom: 1px solid var(--bd); color: var(--t2); vertical-align: top; }
+    .flow-table tr:last-child td { border-bottom: none; }
+    .flow-table tr:hover td { background: var(--sf2); }
+    .step-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--sf2); border: 1px solid var(--bd2);
+      font-size: 0.7rem; font-weight: 700; color: var(--t2);
+      flex-shrink: 0;
+    }
+    .mod-tag {
+      display: inline-block; font-size: 0.65rem; font-weight: 600;
+      padding: 1px 6px; border-radius: 4px;
+      background: #0d1f35; border: 1px solid var(--blue-d); color: var(--blue);
+      margin: 1px;
+    }
+
+    /* ④ ベンダー */
+    .vendor-card {
+      background: var(--sf); border: 1px solid var(--bd); border-radius: 10px;
+      padding: 16px; transition: border-color .2s;
+    }
+    .vendor-card:hover { border-color: var(--blue-d); }
+    .vendor-name { font-size: 0.92rem; font-weight: 700; color: var(--t1); margin-bottom: 4px; }
+    .vendor-product { font-size: 0.75rem; color: var(--blue); margin-bottom: 8px; }
+    .vendor-desc { font-size: 0.78rem; color: var(--t2); line-height: 1.5; margin-bottom: 10px; }
+    .vendor-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .vtag {
+      font-size: 0.65rem; color: var(--t3);
+      background: var(--sf2); border: 1px solid var(--bd);
+      border-radius: 4px; padding: 2px 7px;
+    }
+
+    /* ⑤ NDC */
+    .ndc-compare {
+      display: grid; grid-template-columns: 1fr 60px 1fr; gap: 0; align-items: start;
+    }
+    .ndc-side {
+      background: var(--sf); border: 1px solid var(--bd);
+      border-radius: 10px; overflow: hidden;
+    }
+    .ndc-mid {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding-top: 32px; gap: 6px;
+    }
+    .vs-label { font-size: 0.68rem; color: var(--t3); font-weight: 700; }
+
+    @media (max-width: 860px) {
+      .arch-wrap { grid-template-columns: 1fr; }
+      .pss-modules { grid-template-columns: repeat(2,1fr); }
+      .g4 { grid-template-columns: repeat(2,1fr); }
+      .ndc-compare { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .g3,.g2 { grid-template-columns: 1fr; }
+      .kpi-row { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ヘッダー -->
+  <div class="page-header">
+    <h1>航空業界の PSS（旅客サービスシステム）</h1>
+    <p>Passenger Service System — 航空会社の旅客業務を支えるコアITシステムの全体像</p>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-val">6</div><div class="kpi-lbl">主要モジュール</div></div>
+    <div class="kpi"><div class="kpi-val">4</div><div class="kpi-lbl">主要ベンダー</div></div>
+    <div class="kpi"><div class="kpi-val">7</div><div class="kpi-lbl">連携する外部システム</div></div>
+    <div class="kpi"><div class="kpi-val">24/7</div><div class="kpi-lbl">稼働要件</div></div>
+  </div>
+
+  <!-- ① PSSとは -->
+  <div class="section">
+    <div class="sec-title"><span class="badge">1</span>PSS とは何か</div>
+    <div class="sec-desc">航空会社が旅客に関わるすべての業務（予約〜搭乗〜マイレージ）を処理するための基幹ITプラットフォーム</div>
+
+    <div class="concept">
+      <div class="cbox">
+        <div class="cicon">🌐</div>
+        <div class="clabel">販売チャネル</div>
+        <div class="csub">OTA / GDS<br>自社サイト / 電話</div>
+      </div>
+      <div class="carr">
+        <span class="alabel">予約リクエスト</span>
+        <svg width="50" height="14" viewBox="0 0 50 14"><line x1="0" y1="7" x2="40" y2="7" stroke="#58a6ff" stroke-width="1.5"/><polygon points="36,3 48,7 36,11" fill="#58a6ff"/></svg>
+      </div>
+      <div class="cbox">
+        <div class="cicon hl">✈️</div>
+        <div class="clabel" style="color:#79c0ff">PSS</div>
+        <div class="csub">航空会社の<br>基幹システム</div>
+      </div>
+      <div class="carr">
+        <span class="alabel">処理・管理</span>
+        <svg width="50" height="14" viewBox="0 0 50 14"><line x1="0" y1="7" x2="40" y2="7" stroke="#30363d" stroke-width="1.5"/><polygon points="36,3 48,7 36,11" fill="#30363d"/></svg>
+      </div>
+      <div class="cbox">
+        <div class="cicon">🖥️</div>
+        <div class="clabel">空港システム</div>
+        <div class="csub">チェックイン端末<br>搭乗ゲート</div>
+      </div>
+      <div class="carr">
+        <span class="alabel">搭乗情報</span>
+        <svg width="50" height="14" viewBox="0 0 50 14"><line x1="0" y1="7" x2="40" y2="7" stroke="#30363d" stroke-width="1.5"/><polygon points="36,3 48,7 36,11" fill="#30363d"/></svg>
+      </div>
+      <div class="cbox">
+        <div class="cicon">👤</div>
+        <div class="clabel">旅客</div>
+        <div class="csub">搭乗券受取<br>スムーズな搭乗</div>
+      </div>
+      <div style="width:100%;display:flex;justify-content:center;margin-top:10px">
+        <svg width="760" height="20" viewBox="0 0 760 20" style="max-width:100%">
+          <line x1="710" y1="10" x2="50" y2="10" stroke="#3fb950" stroke-width="1.5" stroke-dasharray="5,3"/>
+          <polygon points="54,6 42,10 54,14" fill="#3fb950"/>
+          <text x="378" y="8" text-anchor="middle" fill="#3fb950" font-size="10" font-family="sans-serif">レスポンス（確認番号・搭乗券・マイレージ）</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ② PSSアーキテクチャ -->
+  <div class="section">
+    <div class="sec-title"><span class="badge">2</span>PSS のアーキテクチャ（構成要素）</div>
+    <div class="sec-desc">PSSは複数のモジュールが連携するプラットフォーム。中央のコアに外部システムが接続する</div>
+
+    <div class="arch-wrap">
+
+      <!-- 左：外部チャネル -->
+      <div class="arch-side">
+        <div class="side-box">
+          <div class="side-box-title">販売チャネル</div>
+          <div class="side-item"><strong>GDS</strong>Amadeus / Sabre / Travelport</div>
+          <div class="side-item"><strong>OTA</strong>Expedia / Booking.com</div>
+          <div class="side-item"><strong>NDC</strong>IATA新流通規格 API</div>
+          <div class="side-item"><strong>自社 IBE</strong>航空会社直販サイト</div>
+          <div class="side-item"><strong>コールセンター</strong>電話予約システム</div>
+        </div>
+        <div class="conn-arrow">
+          <svg width="40" height="30" viewBox="0 0 40 30">
+            <line x1="20" y1="0" x2="20" y2="20" stroke="#30363d" stroke-width="1.5"/>
+            <polygon points="14,16 20,28 26,16" fill="#30363d"/>
+          </svg>
+        </div>
+        <div class="side-box">
+          <div class="side-box-title">空港・運航システム</div>
+          <div class="side-item"><strong>DCS端末</strong>チェックイン・搭乗機器</div>
+          <div class="side-item"><strong>FIDS</strong>フライト情報表示板</div>
+          <div class="side-item"><strong>OPS</strong>運航管理システム</div>
+        </div>
+      </div>
+
+      <!-- 中央：PSSコア -->
+      <div class="arch-center">
+        <div class="pss-core">
+          <div class="pss-core-title">PSS コア</div>
+          <div class="pss-modules" id="pss-modules"></div>
+        </div>
+        <div style="display:flex;justify-content:center">
+          <svg width="40" height="30" viewBox="0 0 40 30">
+            <line x1="20" y1="0" x2="20" y2="20" stroke="#30363d" stroke-width="1.5"/>
+            <polygon points="14,16 20,28 26,16" fill="#30363d"/>
+          </svg>
+        </div>
+        <div class="side-box">
+          <div class="side-box-title">インフラ・共通基盤</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:0.75rem;color:var(--t2)">
+            <span>クラウド / オンプレミス</span>
+            <span>24/7 高可用性</span>
+            <span>データバックアップ</span>
+            <span>API ゲートウェイ</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右：外部連携 -->
+      <div class="arch-side">
+        <div class="side-box">
+          <div class="side-box-title">政府・規制機関</div>
+          <div class="side-item"><strong>APIS</strong>出入国前旅客情報送信</div>
+          <div class="side-item"><strong>PNR共有</strong>航空保安当局への提供</div>
+          <div class="side-item"><strong>TIMATIC</strong>ビザ・入国要件確認</div>
+        </div>
+        <div class="conn-arrow">
+          <svg width="40" height="30" viewBox="0 0 40 30">
+            <line x1="20" y1="0" x2="20" y2="20" stroke="#30363d" stroke-width="1.5"/>
+            <polygon points="14,16 20,28 26,16" fill="#30363d"/>
+          </svg>
+        </div>
+        <div class="side-box">
+          <div class="side-box-title">パートナー連携</div>
+          <div class="side-item"><strong>コードシェア</strong>他社便の座席販売</div>
+          <div class="side-item"><strong>インターライン</strong>他社乗継の精算</div>
+          <div class="side-item"><strong>FFP提携</strong>マイレージ相互積算</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ③ 旅客フローとPSSモジュールの対応 -->
+  <div class="section">
+    <div class="sec-title"><span class="badge">3</span>旅客フロー × PSSモジュールの対応</div>
+    <div class="sec-desc">旅客の各タッチポイントで、PSSのどのモジュールが動いているか</div>
+
+    <div class="card">
+      <table class="flow-table">
+        <thead>
+          <tr>
+            <th style="width:32px">#</th>
+            <th>旅客タッチポイント</th>
+            <th>PSSの処理内容</th>
+            <th>関連モジュール</th>
+          </tr>
+        </thead>
+        <tbody id="flow-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ④ 主要ベンダー -->
+  <div class="section">
+    <div class="sec-title"><span class="badge">4</span>主要PSSベンダー</div>
+    <div class="sec-desc">世界の航空会社が採用している代表的なPSSプロバイダー</div>
+    <div class="g4" id="vendors"></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ⑤ GDS vs NDC -->
+  <div class="section">
+    <div class="sec-title"><span class="badge">5</span>GDS と NDC の違い</div>
+    <div class="sec-desc">PSSを通じた座席販売における2つの流通方式の比較</div>
+
+    <div class="ndc-compare">
+      <div class="ndc-side">
+        <div class="card-h" style="border-left:3px solid var(--orange)">
+          <div class="card-h-title">GDS（旧来型）</div>
+          <div class="card-h-sub">Global Distribution System</div>
+        </div>
+        <div class="card-b">
+          <ul class="dl">
+            <li>Amadeus / Sabre / Travelport が仲介</li>
+            <li>EDIFACT という古い通信規格を使用</li>
+            <li>提供できる情報が限定的（運賃・座席のみ）</li>
+            <li>補助サービス（手荷物・食事）の販売が困難</li>
+            <li>GDS手数料が発生しコスト高</li>
+            <li>航空会社が価格設定の自由度を持ちにくい</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="ndc-mid">
+        <svg width="30" height="30" viewBox="0 0 30 30">
+          <line x1="5" y1="15" x2="25" y2="15" stroke="#30363d" stroke-width="1.5"/>
+          <polygon points="18,9 28,15 18,21" fill="#58a6ff"/>
+          <polygon points="12,9 2,15 12,21" fill="#3fb950"/>
+        </svg>
+        <span class="vs-label">VS</span>
+      </div>
+
+      <div class="ndc-side">
+        <div class="card-h" style="border-left:3px solid var(--blue)">
+          <div class="card-h-title">NDC（新流通規格）</div>
+          <div class="card-h-sub">New Distribution Capability (IATA)</div>
+        </div>
+        <div class="card-b">
+          <ul class="dl">
+            <li>IATAが策定したAPIベースの新規格</li>
+            <li>航空会社が直接OTA・代理店と接続</li>
+            <li>画像・動画・アンシラリーを含む豊富なコンテンツ</li>
+            <li>手荷物・座席グレード・食事の個別販売が可能</li>
+            <li>パーソナライズされた運賃提示が可能</li>
+            <li>GDS仲介コストを削減し収益性向上</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+/* ─── データ ─────────────────────────────── */
+
+const pssModules = [
+  { name: "予約管理", abbr: "CRS / IBE", desc: "座席在庫・PNR管理・運賃計算" },
+  { name: "収益管理", abbr: "RM",        desc: "動的価格設定・座席クラス配分" },
+  { name: "出発管理", abbr: "DCS",       desc: "チェックイン・搭乗券・荷物" },
+  { name: "常連客管理", abbr: "FFP",     desc: "マイレージ積算・特典処理" },
+  { name: "在庫管理", abbr: "Inventory", desc: "フライト座席の可用性管理" },
+  { name: "精算管理", abbr: "Interline", desc: "コードシェア・乗継の費用精算" },
+];
+
+const flowData = [
+  { step:1, touch:"航空券検索・予約",   action:"PNR（旅客予約記録）作成、在庫確保、運賃計算、決済処理",       mods:["CRS / IBE","Inventory","RM"] },
+  { step:2, touch:"予約確認・Eチケット発行", action:"確認番号付与、Eチケット発行、旅行者情報の登録",         mods:["CRS","Ticketing"] },
+  { step:3, touch:"オンラインチェックイン",  action:"座席アサイン、搭乗券（BCBP）発行、荷物タグ事前登録",   mods:["DCS"] },
+  { step:4, touch:"空港チェックイン・手荷物", action:"PNR照合、荷物重量記録、超過料金計算、搭乗券再発行",   mods:["DCS","CRS"] },
+  { step:5, touch:"出入国審査（APIS送信）", action:"旅客情報を政府機関へ事前送信（API/PNRデータ）",         mods:["DCS","Government API"] },
+  { step:6, touch:"搭乗ゲート",           action:"搭乗券スキャン・搭乗確認、最終搭乗者リスト（PAX List）確定", mods:["DCS"] },
+  { step:7, touch:"フライト後・マイレージ積算", action:"搭乗実績確認、マイル積算、特典交換処理",           mods:["FFP","CRS"] },
+];
+
+const vendors = [
+  {
+    name:"Amadeus",
+    product:"Altéa Suite",
+    desc:"世界最大シェア。FSC（大手航空会社）向けの統合PSSプラットフォーム。JAL・ANA等が採用。",
+    tags:["FSC向け","世界最大シェア","GDS運営","NDC対応"],
+  },
+  {
+    name:"Sabre",
+    product:"SynXis / AirVision",
+    desc:"北米系航空会社に強い。OTAとの接続性が高く、RM機能に定評がある。",
+    tags:["北米強み","OTA接続","RM特化","GDS運営"],
+  },
+  {
+    name:"Navitaire",
+    product:"New Skies",
+    desc:"LCC（格安航空会社）向けに特化。シンプルな運賃体系・アンシラリー販売に強い。",
+    tags:["LCC特化","アンシラリー","シンプル設計","Microsoftグループ"],
+  },
+  {
+    name:"IBS Software",
+    product:"iFly Res",
+    desc:"アジア系航空会社への導入実績が多い。クラウドネイティブなモダンアーキテクチャ。",
+    tags:["アジア実績","クラウドネイティブ","FSC/LCC両対応","NDC対応"],
+  },
+];
+
+/* ─── レンダリング ──────────────────────── */
+
+// PSSモジュール
+const modsEl = document.getElementById('pss-modules');
+pssModules.forEach(m => {
+  const d = document.createElement('div');
+  d.className = 'pss-mod';
+  d.innerHTML = `<div class="pss-mod-name">${m.name}</div><div class="pss-mod-abbr">${m.abbr}</div><div class="pss-mod-desc">${m.desc}</div>`;
+  modsEl.appendChild(d);
+});
+
+// フローテーブル
+const tbody = document.getElementById('flow-table-body');
+flowData.forEach(r => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><span class="step-badge">${r.step}</span></td>
+    <td style="color:var(--t1);font-weight:600">${r.touch}</td>
+    <td>${r.action}</td>
+    <td>${r.mods.map(m=>`<span class="mod-tag">${m}</span>`).join('')}</td>`;
+  tbody.appendChild(tr);
+});
+
+// ベンダー
+const venEl = document.getElementById('vendors');
+vendors.forEach(v => {
+  const d = document.createElement('div');
+  d.className = 'vendor-card';
+  d.innerHTML = `
+    <div class="vendor-name">${v.name}</div>
+    <div class="vendor-product">${v.product}</div>
+    <div class="vendor-desc">${v.desc}</div>
+    <div class="vendor-tags">${v.tags.map(t=>`<span class="vtag">${t}</span>`).join('')}</div>`;
+  venEl.appendChild(d);
+});
+</script>
+</body>
+</html>

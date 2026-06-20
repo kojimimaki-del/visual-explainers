@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API 図解ガイド</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #1c2128;
+      --border:    #21262d;
+      --border2:   #30363d;
+      --text1:     #e6edf3;
+      --text2:     #8b949e;
+      --text3:     #7d8590;
+      --blue:      #58a6ff;
+      --blue-dim:  #1f6feb;
+      --green:     #3fb950;
+      --orange:    #d29922;
+      --red:       #f85149;
+      --purple:    #bc8cff;
+      --teal:      #39d353;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+      background: var(--bg);
+      color: var(--text1);
+      min-height: 100vh;
+      padding: 40px 24px 80px;
+    }
+
+    /* ── ページヘッダー ── */
+    .page-header {
+      max-width: 1080px;
+      margin: 0 auto 32px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 22px;
+    }
+    .page-header h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 6px; }
+    .page-header p  { font-size: 0.88rem; color: var(--text3); }
+
+    /* ── セクション ── */
+    .section {
+      max-width: 1080px;
+      margin: 0 auto 40px;
+    }
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text1);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title .badge {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--blue-dim);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-desc { font-size: 0.82rem; color: var(--text3); margin-bottom: 18px; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 36px 0; max-width: 1080px; margin-left: auto; margin-right: auto; }
+
+    /* ── カード ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: var(--blue-dim); }
+    .card-head {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      padding: 9px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-head-title { font-size: 0.82rem; font-weight: 600; color: var(--text1); }
+    .card-head-sub   { font-size: 0.7rem; color: var(--text3); }
+    .card-body { padding: 14px; }
+
+    /* ── グリッド ── */
+    .grid2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+    .grid4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+
+    /* ── 箇条書き ── */
+    .dot-list { list-style: none; }
+    .dot-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--text2);
+      line-height: 1.5;
+      margin-bottom: 6px;
+    }
+    .dot-list li:last-child { margin-bottom: 0; }
+    .dot-list li::before {
+      content: '';
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--border2);
+      flex-shrink: 0;
+      margin-top: 5px;
+    }
+
+    /* ── ① API概念図 ── */
+    .concept-diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+      row-gap: 16px;
+    }
+    .concept-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      min-width: 110px;
+    }
+    .concept-icon {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      border: 1.5px solid var(--border2);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+    .concept-icon.highlight {
+      border-color: var(--blue);
+      background: #132032;
+    }
+    .concept-label { font-size: 0.78rem; color: var(--text1); font-weight: 600; }
+    .concept-sublabel { font-size: 0.68rem; color: var(--text3); text-align: center; }
+
+    .concept-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 12px;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .concept-arrow .arrow-label {
+      font-size: 0.65rem;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+    .concept-arrow svg { display: block; }
+
+    /* ── ② リクエスト/レスポンス ── */
+    .req-resp-wrap {
+      display: grid;
+      grid-template-columns: 1fr 80px 1fr;
+      gap: 0;
+      align-items: start;
+    }
+    .req-block, .resp-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .req-block .card-head { border-left: 3px solid var(--blue); }
+    .resp-block .card-head { border-left: 3px solid var(--green); }
+    .req-resp-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding-top: 28px;
+    }
+    .req-resp-center svg { display: block; }
+
+    .code-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.78rem;
+    }
+    .code-row:last-child { border-bottom: none; }
+    .code-key   { color: var(--purple); min-width: 110px; flex-shrink: 0; }
+    .code-value { color: var(--text2); word-break: break-all; }
+    .code-value .str  { color: var(--teal); }
+    .code-value .num  { color: var(--orange); }
+    .code-value .kw   { color: var(--blue); }
+    .code-value .muted { color: var(--text3); }
+
+    /* ── ③ HTTPメソッド ── */
+    .method-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .method-table th {
+      background: var(--surface2);
+      color: var(--text3);
+      font-weight: 600;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .method-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text2);
+      vertical-align: top;
+    }
+    .method-table tr:last-child td { border-bottom: none; }
+    .method-table tr:hover td { background: var(--surface2); }
+    .method-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      font-family: monospace;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid;
+    }
+    .m-get    { color: #79c0ff; border-color: #1f6feb; background: #0d1f35; }
+    .m-post   { color: #56d364; border-color: #2ea043; background: #0b1f0d; }
+    .m-put    { color: #e3b341; border-color: #9e6a03; background: #1e1502; }
+    .m-patch  { color: #d2a8ff; border-color: #8957e5; background: #1b1235; }
+    .m-delete { color: #ff7b72; border-color: #da3633; background: #2d0b0b; }
+
+    /* ── ④ ステータスコード ── */
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+    .status-group { }
+    .status-group-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      padding-bottom: 5px;
+      border-bottom: 2px solid;
+    }
+    .s1xx .status-group-title { border-color: #7d8590; color: #7d8590; }
+    .s2xx .status-group-title { border-color: var(--green); color: var(--green); }
+    .s3xx .status-group-title { border-color: #e3b341; color: #e3b341; }
+    .s4xx .status-group-title { border-color: var(--orange); color: var(--orange); }
+    .s5xx .status-group-title { border-color: var(--red); color: var(--red); }
+    .status-item {
+      font-size: 0.76rem;
+      color: var(--text2);
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-item:last-child { border-bottom: none; }
+    .status-code { font-weight: 600; font-family: monospace; min-width: 32px; }
+    .s2xx .status-code { color: var(--green); }
+    .s3xx .status-code { color: #e3b341; }
+    .s4xx .status-code { color: var(--orange); }
+    .s5xx .status-code { color: var(--red); }
+
+    /* ── ⑤ API種別 ── */
+    .api-type-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      transition: border-color 0.2s;
+    }
+    .api-type-card:hover { border-color: var(--blue-dim); }
+    .api-type-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text1);
+      margin-bottom: 4px;
+    }
+    .api-type-tag {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid;
+      margin-bottom: 10px;
+    }
+    .tag-rest    { color: #79c0ff; border-color: #1f6feb; background: #0d1f35; }
+    .tag-gql     { color: #d2a8ff; border-color: #8957e5; background: #1b1235; }
+    .tag-grpc    { color: #56d364; border-color: #2ea043; background: #0b1f0d; }
+    .tag-ws      { color: #e3b341; border-color: #9e6a03; background: #1e1502; }
+    .tag-webhook { color: #ff7b72; border-color: #da3633; background: #2d0b0b; }
+    .api-type-desc { font-size: 0.78rem; color: var(--text2); line-height: 1.5; margin-bottom: 10px; }
+    .pro-con {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .pro-con-block .label {
+      font-size: 0.66rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+    .pro-con-block.pro .label { color: var(--green); }
+    .pro-con-block.con .label { color: var(--red); }
+    .pro-con-block li {
+      font-size: 0.72rem;
+      color: var(--text2);
+      list-style: none;
+      padding-left: 8px;
+      position: relative;
+      line-height: 1.5;
+    }
+    .pro-con-block.pro li::before { content: '+'; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+    .pro-con-block.con li::before { content: '−'; position: absolute; left: 0; color: var(--red); font-weight: 700; }
+
+    /* ── ⑥ 認証 ── */
+    .auth-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .auth-row:last-child { border-bottom: none; }
+    .auth-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+      border: 1px solid var(--border2);
+      background: var(--surface2);
+    }
+    .auth-name { font-size: 0.85rem; font-weight: 600; color: var(--text1); margin-bottom: 3px; }
+    .auth-desc { font-size: 0.78rem; color: var(--text2); line-height: 1.5; margin-bottom: 5px; }
+    .auth-code {
+      font-size: 0.72rem;
+      font-family: monospace;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 5px 10px;
+      color: var(--teal);
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    /* ── ⑦ ユースケース ── */
+    .usecase-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      transition: border-color 0.2s;
+    }
+    .usecase-card:hover { border-color: var(--blue-dim); }
+    .usecase-title { font-size: 0.85rem; font-weight: 600; color: var(--text1); margin-bottom: 6px; }
+    .usecase-examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .usecase-tag {
+      font-size: 0.7rem;
+      color: var(--text3);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 7px;
+    }
+
+    /* ── レスポンシブ ── */
+    @media (max-width: 860px) {
+      .grid4  { grid-template-columns: repeat(2,1fr); }
+      .status-grid { grid-template-columns: repeat(3,1fr); }
+      .req-resp-wrap { grid-template-columns: 1fr; }
+      .req-resp-center { flex-direction: row; padding-top: 0; padding: 12px 0; transform: rotate(90deg); }
+    }
+    @media (max-width: 640px) {
+      .grid3 { grid-template-columns: 1fr; }
+      .grid2 { grid-template-columns: 1fr; }
+      .status-grid { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ページヘッダー -->
+<div class="page-header">
+  <h1>API 図解ガイド</h1>
+  <p>APIの概念・仕組み・種別・認証方式・ユースケースをまとめた視覚的リファレンス</p>
+</div>
+
+
+<!-- ①  API とは何か -->
+<div class="section">
+  <div class="section-title"><span class="badge">1</span>API とは何か</div>
+  <div class="section-desc">Application Programming Interface — システム間で「できること」を取り決めた「契約書」</div>
+
+  <div class="concept-diagram">
+    <!-- クライアント -->
+    <div class="concept-box">
+      <div class="concept-icon">💻</div>
+      <div class="concept-label">クライアント</div>
+      <div class="concept-sublabel">ブラウザ / モバイルアプリ<br>/ 外部システム</div>
+    </div>
+
+    <!-- 矢印1 -->
+    <div class="concept-arrow">
+      <span class="arrow-label">リクエスト</span>
+      <svg width="60" height="16" viewBox="0 0 60 16">
+        <line x1="0" y1="8" x2="50" y2="8" stroke="#58a6ff" stroke-width="1.5"/>
+        <polygon points="46,4 58,8 46,12" fill="#58a6ff"/>
+      </svg>
+      <span class="arrow-label" style="color:transparent">x</span>
+    </div>
+
+    <!-- API レイヤー -->
+    <div class="concept-box">
+      <div class="concept-icon highlight">🔌</div>
+      <div class="concept-label" style="color:#79c0ff">API</div>
+      <div class="concept-sublabel">インターフェース<br>（窓口・契約）</div>
+    </div>
+
+    <!-- 矢印2 -->
+    <div class="concept-arrow">
+      <span class="arrow-label">転送</span>
+      <svg width="60" height="16" viewBox="0 0 60 16">
+        <line x1="0" y1="8" x2="50" y2="8" stroke="#30363d" stroke-width="1.5"/>
+        <polygon points="46,4 58,8 46,12" fill="#30363d"/>
+      </svg>
+      <span class="arrow-label" style="color:transparent">x</span>
+    </div>
+
+    <!-- サーバー -->
+    <div class="concept-box">
+      <div class="concept-icon">🖥️</div>
+      <div class="concept-label">サーバー</div>
+      <div class="concept-sublabel">ビジネスロジック<br>/ アプリケーション</div>
+    </div>
+
+    <!-- 矢印3 -->
+    <div class="concept-arrow">
+      <span class="arrow-label">読み書き</span>
+      <svg width="60" height="16" viewBox="0 0 60 16">
+        <line x1="0" y1="8" x2="50" y2="8" stroke="#30363d" stroke-width="1.5"/>
+        <polygon points="46,4 58,8 46,12" fill="#30363d"/>
+      </svg>
+      <span class="arrow-label" style="color:transparent">x</span>
+    </div>
+
+    <!-- DB -->
+    <div class="concept-box">
+      <div class="concept-icon">🗄️</div>
+      <div class="concept-label">データベース</div>
+      <div class="concept-sublabel">データの永続化<br>/ ストレージ</div>
+    </div>
+
+    <!-- 矢印 折り返し -->
+    <div style="width:100%;display:flex;justify-content:center;margin-top:12px">
+      <svg width="820" height="24" viewBox="0 0 820 24" style="max-width:100%">
+        <line x1="760" y1="12" x2="60" y2="12" stroke="#3fb950" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="64,8 52,12 64,16" fill="#3fb950"/>
+        <text x="390" y="9" text-anchor="middle" fill="#3fb950" font-size="10" font-family="sans-serif">レスポンス（データを返す）</text>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ② リクエスト / レスポンス構造 -->
+<div class="section">
+  <div class="section-title"><span class="badge">2</span>HTTPリクエスト / レスポンスの構造</div>
+  <div class="section-desc">REST API で最も一般的な HTTP を使ったやりとりの中身</div>
+
+  <div class="req-resp-wrap">
+
+    <!-- リクエスト -->
+    <div class="req-block card">
+      <div class="card-head" style="border-left:3px solid #58a6ff">
+        <div class="card-head-title">HTTPリクエスト</div>
+        <div class="card-head-sub">クライアント → サーバー</div>
+      </div>
+      <div class="card-body">
+        <div class="code-row">
+          <span class="code-key">Method + URL</span>
+          <span class="code-value"><span class="kw">POST</span> <span class="str">/api/v1/users</span></span>
+        </div>
+        <div class="code-row">
+          <span class="code-key">Host</span>
+          <span class="code-value"><span class="str">api.example.com</span></span>
+        </div>
+        <div class="code-row">
+          <span class="code-key">Content-Type</span>
+          <span class="code-value"><span class="str">application/json</span></span>
+        </div>
+        <div class="code-row">
+          <span class="code-key">Authorization</span>
+          <span class="code-value"><span class="str">Bearer eyJhbGci...</span></span>
+        </div>
+        <div class="code-row">
+          <span class="code-key">Body (JSON)</span>
+          <span class="code-value">
+            {<br>
+            &nbsp; <span class="str">"name"</span>: <span class="str">"Taro"</span>,<br>
+            &nbsp; <span class="str">"email"</span>: <span class="str">"taro@mail.com"</span><br>
+            }
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 中央矢印 -->
+    <div class="req-resp-center">
+      <svg width="24" height="40" viewBox="0 0 24 40">
+        <line x1="12" y1="0" x2="12" y2="30" stroke="#58a6ff" stroke-width="1.5"/>
+        <polygon points="6,26 12,38 18,26" fill="#58a6ff"/>
+      </svg>
+      <svg width="24" height="40" viewBox="0 0 24 40" style="margin-top:4px">
+        <polygon points="6,12 12,0 18,12" fill="#3fb950"/>
+        <line x1="12" y1="10" x2="12" y2="40" stroke="#3fb950" stroke-width="1.5"/>
+      </svg>
+    </div>
+
+    <!-- レスポンス -->
+    <div class="resp-block card">
+      <div class="card-head" style="border-left:3px solid #3fb950">
+        <div class="card-head-title">HTTPレスポンス</div>
+        <div class="card-head-sub">サーバー → クライアント</div>
+      </div>
+      <div class="card-body">
+        <div class="code-row">
+          <span class="code-key">Status Line</span>
+          <span class="code-value"><span class="kw">HTTP/1.1</span> <span class="str" style="color:#3fb950">201 Created</span></span>
+        </div>
+        <div class="code-row">
+          <span class="code-key">Content-Type</span>
+          <span class="code-value"><span class="str">application/json</span></span>
+        </div>
+        <div class="code-row">
+          <span class="code-key">X-Request-Id</span>
+          <span class="code-value"><span class="str">a3f9c821-...</span></span>
+        </div>
+        <div class="code-row" style="border-bottom:none">
+          <span class="code-key">Body (JSON)</span>
+          <span class="code-value">
+            {<br>
+            &nbsp; <span class="str">"id"</span>: <span class="num">42</span>,<br>
+            &nbsp; <span class="str">"name"</span>: <span class="str">"Taro"</span>,<br>
+            &nbsp; <span class="str">"created_at"</span>: <span class="str">"2026-06-20"</span><br>
+            }
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ③ HTTPメソッド -->
+<div class="section">
+  <div class="section-title"><span class="badge">3</span>HTTP メソッド（CRUD との対応）</div>
+  <div class="section-desc">REST API で使われる 5 つの代表的メソッドと用途</div>
+
+  <div class="card">
+    <table class="method-table">
+      <thead>
+        <tr>
+          <th>メソッド</th>
+          <th>意味</th>
+          <th>CRUD</th>
+          <th>例</th>
+          <th>特徴</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="method-badge m-get">GET</span></td>
+          <td>リソースを取得</td>
+          <td>Read</td>
+          <td><code style="font-size:0.75rem;color:#7d8590">GET /users/42</code></td>
+          <td>べき等・安全。ボディなし</td>
+        </tr>
+        <tr>
+          <td><span class="method-badge m-post">POST</span></td>
+          <td>リソースを新規作成</td>
+          <td>Create</td>
+          <td><code style="font-size:0.75rem;color:#7d8590">POST /users</code></td>
+          <td>非べき等。レスポンス 201 Created</td>
+        </tr>
+        <tr>
+          <td><span class="method-badge m-put">PUT</span></td>
+          <td>リソースを完全置換</td>
+          <td>Update</td>
+          <td><code style="font-size:0.75rem;color:#7d8590">PUT /users/42</code></td>
+          <td>べき等。未指定フィールドは null になる</td>
+        </tr>
+        <tr>
+          <td><span class="method-badge m-patch">PATCH</span></td>
+          <td>リソースを部分更新</td>
+          <td>Update</td>
+          <td><code style="font-size:0.75rem;color:#7d8590">PATCH /users/42</code></td>
+          <td>差分のみ送る。PUT より軽量</td>
+        </tr>
+        <tr>
+          <td><span class="method-badge m-delete">DELETE</span></td>
+          <td>リソースを削除</td>
+          <td>Delete</td>
+          <td><code style="font-size:0.75rem;color:#7d8590">DELETE /users/42</code></td>
+          <td>べき等。レスポンス 204 No Content</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ④ ステータスコード -->
+<div class="section">
+  <div class="section-title"><span class="badge">4</span>HTTP ステータスコード</div>
+  <div class="section-desc">レスポンスの結果を示す 3 桁の番号。先頭 1 桁がカテゴリを表す</div>
+
+  <div class="status-grid">
+    <div class="status-group s1xx">
+      <div class="status-group-title">1xx 情報</div>
+      <div class="status-item"><span class="status-code">100</span>Continue</div>
+      <div class="status-item"><span class="status-code">101</span>Switching Protocols</div>
+    </div>
+    <div class="status-group s2xx">
+      <div class="status-group-title">2xx 成功</div>
+      <div class="status-item"><span class="status-code">200</span>OK</div>
+      <div class="status-item"><span class="status-code">201</span>Created</div>
+      <div class="status-item"><span class="status-code">204</span>No Content</div>
+    </div>
+    <div class="status-group s3xx">
+      <div class="status-group-title">3xx リダイレクト</div>
+      <div class="status-item"><span class="status-code">301</span>Moved Permanently</div>
+      <div class="status-item"><span class="status-code">302</span>Found</div>
+      <div class="status-item"><span class="status-code">304</span>Not Modified</div>
+    </div>
+    <div class="status-group s4xx">
+      <div class="status-group-title">4xx クライアントエラー</div>
+      <div class="status-item"><span class="status-code">400</span>Bad Request</div>
+      <div class="status-item"><span class="status-code">401</span>Unauthorized</div>
+      <div class="status-item"><span class="status-code">403</span>Forbidden</div>
+      <div class="status-item"><span class="status-code">404</span>Not Found</div>
+      <div class="status-item"><span class="status-code">429</span>Too Many Requests</div>
+    </div>
+    <div class="status-group s5xx">
+      <div class="status-group-title">5xx サーバーエラー</div>
+      <div class="status-item"><span class="status-code">500</span>Internal Server Error</div>
+      <div class="status-item"><span class="status-code">502</span>Bad Gateway</div>
+      <div class="status-item"><span class="status-code">503</span>Service Unavailable</div>
+      <div class="status-item"><span class="status-code">504</span>Gateway Timeout</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ⑤ API の種別 -->
+<div class="section">
+  <div class="section-title"><span class="badge">5</span>API の種別</div>
+  <div class="section-desc">用途・通信方式によって選択される代表的な 5 種類</div>
+
+  <div class="grid3" id="api-types"></div>
+</div>
+
+<hr class="divider">
+
+<!-- ⑥ 認証方式 -->
+<div class="section">
+  <div class="section-title"><span class="badge">6</span>API 認証方式</div>
+  <div class="section-desc">「誰が・何のために呼んでいるか」を確認するための仕組み</div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-body" id="auth-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-title">認証フロー比較</div>
+      </div>
+      <div class="card-body">
+        <table style="width:100%;font-size:0.78rem;border-collapse:collapse">
+          <thead>
+            <tr>
+              <th style="text-align:left;padding:7px 8px;color:var(--text3);font-size:0.7rem;border-bottom:1px solid var(--border);font-weight:600">方式</th>
+              <th style="text-align:left;padding:7px 8px;color:var(--text3);font-size:0.7rem;border-bottom:1px solid var(--border);font-weight:600">実装難易度</th>
+              <th style="text-align:left;padding:7px 8px;color:var(--text3);font-size:0.7rem;border-bottom:1px solid var(--border);font-weight:600">セキュリティ</th>
+              <th style="text-align:left;padding:7px 8px;color:var(--text3);font-size:0.7rem;border-bottom:1px solid var(--border);font-weight:600">主な用途</th>
+            </tr>
+          </thead>
+          <tbody id="auth-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ⑦ ユースケース -->
+<div class="section">
+  <div class="section-title"><span class="badge">7</span>主なユースケース</div>
+  <div class="section-desc">業界・場面別の API 活用例</div>
+  <div class="grid4" id="usecases"></div>
+</div>
+
+
+<script>
+/* ─── データ ───────────────────────────────────── */
+
+const apiTypes = [
+  {
+    name: "REST API",
+    tagClass: "tag-rest",
+    tag: "REST",
+    desc: "HTTP を利用し、リソース指向でエンドポイントを設計する最も普及したスタイル。JSON をデータ形式として使用する。",
+    pros: ["シンプルで学習コスト低", "HTTP キャッシュ活用可", "広いエコシステム"],
+    cons: ["過剰取得・過少取得が起きやすい", "バージョン管理が煩雑"],
+  },
+  {
+    name: "GraphQL",
+    tagClass: "tag-gql",
+    tag: "GraphQL",
+    desc: "クライアントが必要なフィールドだけを指定してクエリできる柔軟な API 設計。Facebook が開発。",
+    pros: ["必要なデータのみ取得", "1 エンドポイントで完結", "型システムが明確"],
+    cons: ["キャッシュが複雑", "小規模では過剰設計になりがち"],
+  },
+  {
+    name: "gRPC",
+    tagClass: "tag-grpc",
+    tag: "gRPC",
+    desc: "Google 開発。Protocol Buffers でスキーマを定義し、HTTP/2 で高速通信。マイクロサービス間通信に最適。",
+    pros: ["高パフォーマンス・低遅延", "強力な型定義", "双方向ストリーミング"],
+    cons: ["ブラウザから直接利用困難", "学習コスト高め"],
+  },
+  {
+    name: "WebSocket",
+    tagClass: "tag-ws",
+    tag: "WebSocket",
+    desc: "一度接続を確立すると双方向リアルタイム通信が可能。チャット・ゲーム・株価配信に活用。",
+    pros: ["リアルタイム双方向通信", "低遅延", "HTTP より効率的"],
+    cons: ["接続管理が複雑", "スケールが難しい"],
+  },
+  {
+    name: "Webhook",
+    tagClass: "tag-webhook",
+    tag: "Webhook",
+    desc: "イベント発生時にサーバーがクライアントへ HTTP POST で通知するプッシュ型の仕組み。",
+    pros: ["ポーリング不要", "イベント駆動でリアルタイム", "シンプルな実装"],
+    cons: ["受け側のエンドポイント公開が必要", "リトライ設計が必要"],
+  },
+];
+
+const authMethods = [
+  {
+    icon: "🔑",
+    name: "API キー",
+    desc: "発行された固定文字列をリクエストヘッダーやクエリに付与する最もシンプルな方式。",
+    code: "X-API-Key: sk-abc123xyz",
+    level: "低", security: "中", usage: "サービス間・公開 API",
+  },
+  {
+    icon: "🔐",
+    name: "Basic 認証",
+    desc: "ユーザー名とパスワードを Base64 エンコードして送信。HTTPS 必須。",
+    code: "Authorization: Basic dXNlcjpwYXNz",
+    level: "低", security: "低〜中", usage: "管理ツール・内部システム",
+  },
+  {
+    icon: "🎫",
+    name: "JWT (Bearer Token)",
+    desc: "サーバーが発行した署名付きトークン。ステートレスで検証可能。有効期限あり。",
+    code: "Authorization: Bearer eyJhbGciOiJIUzI1...",
+    level: "中", security: "高", usage: "SPA・モバイルアプリ",
+  },
+  {
+    icon: "🔓",
+    name: "OAuth 2.0",
+    desc: "ユーザーが第三者アプリに限定的な権限を委譲する業界標準プロトコル。",
+    code: "Authorization: Bearer <access_token>",
+    level: "高", security: "高", usage: "SNS 連携・外部サービス",
+  },
+];
+
+const usecases = [
+  { title: "決済・金融",   examples: ["Stripe API", "PayPay API", "銀行 Open API", "為替レート取得"] },
+  { title: "地図・位置情報", examples: ["Google Maps", "国土地理院 API", "天気予報 API", "施設検索"] },
+  { title: "AI・機械学習", examples: ["OpenAI API", "Google Vision", "音声認識 API", "翻訳 API"] },
+  { title: "認証・ID管理",  examples: ["Auth0", "Google OAuth", "LINE Login", "SAML/SSO"] },
+  { title: "コミュニケーション", examples: ["Slack API", "Twilio SMS", "SendGrid Mail", "LINE Messaging"] },
+  { title: "EC・物流",      examples: ["楽天 API", "Amazon MWS", "ヤマト運輸 API", "追跡 API"] },
+  { title: "社内システム連携", examples: ["Salesforce API", "kintone REST", "SAP OData", "ERPシステム"] },
+  { title: "行政・公共",    examples: ["e-Gov 法令 API", "郵便番号検索", "国税庁法人番号 API", "統計 API"] },
+];
+
+/* ─── レンダリング ──────────────────────────────── */
+
+// API 種別
+const typesEl = document.getElementById('api-types');
+apiTypes.forEach(t => {
+  const d = document.createElement('div');
+  d.className = 'api-type-card';
+  d.innerHTML = `
+    <div class="api-type-name">${t.name}</div>
+    <span class="api-type-tag ${t.tagClass}">${t.tag}</span>
+    <div class="api-type-desc">${t.desc}</div>
+    <div class="pro-con">
+      <div class="pro-con-block pro">
+        <div class="label">メリット</div>
+        <ul>${t.pros.map(p=>`<li>${p}</li>`).join('')}</ul>
+      </div>
+      <div class="pro-con-block con">
+        <div class="label">デメリット</div>
+        <ul>${t.cons.map(c=>`<li>${c}</li>`).join('')}</ul>
+      </div>
+    </div>`;
+  typesEl.appendChild(d);
+});
+
+// 認証リスト
+const authListEl  = document.getElementById('auth-list');
+const authTableEl = document.getElementById('auth-table');
+authMethods.forEach(a => {
+  const row = document.createElement('div');
+  row.className = 'auth-row';
+  row.innerHTML = `
+    <div class="auth-icon">${a.icon}</div>
+    <div>
+      <div class="auth-name">${a.name}</div>
+      <div class="auth-desc">${a.desc}</div>
+      <code class="auth-code">${a.code}</code>
+    </div>`;
+  authListEl.appendChild(row);
+
+  const secColor = a.security.startsWith('高') ? '#3fb950' : a.security.startsWith('低') ? '#f85149' : '#e3b341';
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="padding:8px;border-bottom:1px solid var(--border);color:var(--text1);font-weight:600">${a.name}</td>
+    <td style="padding:8px;border-bottom:1px solid var(--border);color:var(--text2)">${a.level}</td>
+    <td style="padding:8px;border-bottom:1px solid var(--border);color:${secColor}">${a.security}</td>
+    <td style="padding:8px;border-bottom:1px solid var(--border);color:var(--text3)">${a.usage}</td>`;
+  authTableEl.appendChild(tr);
+});
+
+// ユースケース
+const ucEl = document.getElementById('usecases');
+usecases.forEach(u => {
+  const d = document.createElement('div');
+  d.className = 'usecase-card';
+  d.innerHTML = `
+    <div class="usecase-title">${u.title}</div>
+    <div class="usecase-examples">
+      ${u.examples.map(e=>`<span class="usecase-tag">${e}</span>`).join('')}
+    </div>`;
+  ucEl.appendChild(d);
+});
+</script>
+</body>
+</html>
